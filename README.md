@@ -1,5 +1,5 @@
 # BCPME284S
-
+![Alt text](doc/bcpme%20image.jpeg)
 This a little guide with all the things to know to communicate correctly with the Modbus device BCPME284S by Schneider Electric
 
 ### Table of Contents
