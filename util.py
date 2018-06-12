@@ -70,10 +70,9 @@ class BCPME:
         self.wire_conf = kwargs.get("wire_conf", "")
         self.port = 502
         self.devs_in_use = {1: {}, 2: {}}
-        dev_map = self.load_from_json()
+        dev_map = self.__load_from_json()
         if dev_map is None:
             dev_map = {}
-        # now import devices added previously
         for panel_n in dev_map:
             for letter in dev_map[panel_n]:
                 for physical_n in dev_map[panel_n][letter]:
@@ -83,13 +82,21 @@ class BCPME:
                                   "panel_n": panel_n,
                                   "panel_letter": letter,
                                   "name": el["name"]}
+                        if "phase" in el:
+                            to_add["phase"] = el["phase"]
+                        else:
+                            to_add["phase"] = 0
                         # print("imported from json: ", to_add["name"])
                         self.devs_in_use[int(panel_n)][el["virtual"]] = to_add
 
+        for n in range(4):
+            if self.wire_conf == BCPME.WIRE_CONFIGURATION_TYPE[n]:
+                self.change_configuration(n)
+                break
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((self.ip, self.port))
 
-    def _request_read(self, start_register, num_registers, unit_id):
+    def __request_read(self, start_register, num_registers, unit_id):
         length = 2 + 4
         function_code = 4
         request = struct.pack(">3H 2B 2H", BCPME.DEFAULT_TRANSACTION_ID, BCPME.DEFAULT_PROTOCOL_ID, length, unit_id,
@@ -97,6 +104,12 @@ class BCPME:
         self.sock.send(request)
 
     def request_edit_single(self, reg_n, unit_id, value):
+        """
+        Write a value inside a register of the unit id
+        :param reg_n: the register number to edit
+        :param unit_id: the unit id
+        :param value: the value to write into the register
+        """
         length = 6
         function_code = 6
         request = struct.pack(">3H 2B 1H 1h", BCPME.DEFAULT_TRANSACTION_ID, BCPME.DEFAULT_PROTOCOL_ID, length,
@@ -116,7 +129,7 @@ class BCPME:
         :return: the value stored
         """
         st = struct.Struct(">3H 3B 1h")
-        self._request_read(register_n, 1, unit_id)
+        self.__request_read(register_n, 1, unit_id)
         response = self.sock.recv(st.size)
         # print("binary: %s%s" % (format(response[len(response)-2], "08b"), format(response[len(response)-1], "08b")))
         data = st.unpack(response)
@@ -134,7 +147,7 @@ class BCPME:
         :return: the value requested
         """
         st = struct.Struct(">3H 3B 1l")  # find out if is signed or not signed "l" is signed , "L" unsigned
-        self._request_read(register_n, 2, unit_id)
+        self.__request_read(register_n, 2, unit_id)
 
         response = self.sock.recv(st.size)
         data = st.unpack(response)
@@ -150,30 +163,37 @@ class BCPME:
         :return: the value requested
         """
         st = struct.Struct(">3H 3B 1f")
-        self._request_read(register_n, 2, unit_id)
+        self.__request_read(register_n, 2, unit_id)
         response = self.sock.recv(st.size)
         data = st.unpack(response)
         # scale = self.request_int_16(scale_reg_n, unit_id) if (scale_reg_n != 0) else 0
         return data[6]
 
-    def big_request(self, register_n, num_registers, scale_reg_n):
+    def big_request(self, register_n, num_registers, scale_reg_n) -> dict():
+        """
+        Use this to request all measures about this device only for 16 bit measures
+        :param register_n: the first value register number
+        :param num_registers: the number of registers
+        :param scale_reg_n: the first scale register number
+        :return: a dict containing all the values properly scaled
+        """
         st = struct.Struct(">3H 3B %sh" % num_registers)
         values = {1: [], 2: []}
         scales = {1: [], 2: []}
 
-        self._request_read(register_n, num_registers, 1)
+        self.__request_read(register_n, num_registers, 1)
         resp = st.unpack(self.sock.recv(st.size))
         values[1] = resp[6:len(resp)]
 
-        self._request_read(register_n, num_registers, 2)
+        self.__request_read(register_n, num_registers, 2)
         resp = st.unpack(self.sock.recv(st.size))
         values[2] = resp[6:len(resp)]
 
-        self._request_read(scale_reg_n, num_registers, 1)
+        self.__request_read(scale_reg_n, num_registers, 1)
         resp = st.unpack(self.sock.recv(st.size))
         scales[1] = resp[6:len(resp)]
 
-        self._request_read(scale_reg_n, num_registers, 2)
+        self.__request_read(scale_reg_n, num_registers, 2)
         resp = st.unpack(self.sock.recv(st.size))
         scales[2] = resp[6:len(resp)]
 
@@ -188,10 +208,9 @@ class BCPME:
         return result
 
     def get_name_from_virtual(self, unit_id, virtual):
-        if virtual in self.devs_in_use[unit_id]:
-            return self.devs_in_use[unit_id][virtual]
-        else:
+        if virtual not in self.devs_in_use[unit_id]:
             self.new_dev_from_virtual(unit_id, virtual, "")
+        return self.devs_in_use[unit_id][virtual]
 
     def change_configuration(self, num_of_configuration):
         self.request_edit_single(6, 1, num_of_configuration)
@@ -201,55 +220,55 @@ class BCPME:
         out = 1 if status else 0
         self.request_edit_single(62017, unit_id, out)
 
-    def set_to_phase_1(self, unit_id, num):
+    def set_phase(self, unit_id, virtual, phase):
         start = 62115
-        self.request_edit_single(start + num, unit_id, 0)
+        self.request_edit_single(start + virtual, unit_id, phase)
 
-    def set_to_phase_2(self, unit_id, num):
-        start = 62115
-        self.request_edit_single(start + num, unit_id, 1)
-
-    def set_to_phase_3(self, unit_id, num):
-        start = 62115
-        self.request_edit_single(start + num, unit_id, 2)
-
-    def new_dev_from_virtual(self, unit_id, virtual, name):
+    def new_dev_from_virtual(self, unit_id, virtual, name, phase=0):
+        """
+        Add a new device using references from the register side
+        :param unit_id: the unit id
+        :param virtual: the virtual number
+        :param name: the name of the device
+        :param phase: the phase of the device
+        """
         letter, number = self.virtual_to_physical(virtual)
         to_add = {"physical": number,
                   "panel_n": unit_id,
                   "panel_letter": letter,
-                  "name": name}
+                  "name": name,
+                  "phase": phase}
         self.devs_in_use[unit_id][virtual] = to_add
         self.__save_dev_state()
 
-    def new_dev_from_physical(self, panel_n, panel_letter, physical: tuple, name):
+    def new_dev_from_physical(self, panel_n:int, panel_letter:str, physical:int, name:str, phase:int=0):
+        """
+        Add a new device using references from the physical side
+        :param panel_n: the panel number
+        :param panel_letter: the panel letter
+        :param physical: the number physically written on the panel
+        :param name: the name of the device
+        :param phase: the phase of the device
+        """
         panel_letter = panel_letter.capitalize()
-        if len(physical) <= 1:
-            to_add = {
-                "physical": physical[0],
-                "panel_n": panel_n,
-                "panel_letter": panel_letter,
-                "name": name
-            }
-
-            virtual = self.physical_to_virtual(panel_letter, physical[0])
-            print(to_add, virtual)
-            self.devs_in_use[panel_n][virtual] = to_add
-            print(self.devs_in_use)
-        elif len(physical) == 3:
-            for phase in range(3):
-                to_add = {
-                    "physical": (physical[phase]),
-                    "panel_n": panel_n,
-                    "panel_letter": panel_letter,
-                    "name": "%s_phase_%s" % (name, phase)
-                }
-                virtual = self.physical_to_virtual(panel_letter, physical[phase])
-                print("virtual %s" % virtual)
-                self.devs_in_use[panel_n][virtual] = to_add
+        to_add = {
+            "physical": physical,
+            "panel_n": panel_n,
+            "panel_letter": panel_letter,
+            "name": name,
+            "phase": phase
+        }
+        virtual = self.physical_to_virtual(panel_letter, physical)
+        self.set_phase(panel_n, virtual, phase)
+        self.devs_in_use[panel_n][virtual] = to_add
         self.__save_dev_state()
 
     def virtual_to_physical(self, virtual) -> Tuple[str, int]:
+        """
+        Convert a virtual reference to a physical reference returning a tuple of: panel_letter, physical_number
+        :param virtual: the virtual number
+        :return: the corresponding panel letter and physical number in a Tuple[ panel_letter, physical_number]
+        """
         if self.wire_conf == BCPME.WIRE_CONFIGURATION_TYPE[0]:
             if virtual % 2 == 0:
                 return "B", int(virtual / 2)
@@ -272,6 +291,12 @@ class BCPME:
                 return "A", int((43 - virtual) / 2)
 
     def physical_to_virtual(self, panel_letter: str, physical_number: int):
+        """
+        Convert a physical reference to a virtual reference returning the virtual number
+        :param panel_letter: the panel letter
+        :param physical_number: the number physically written on the panel
+        :return: the corresponding virtual number
+        """
         panel_letter = panel_letter.capitalize()
         if self.wire_conf == BCPME.WIRE_CONFIGURATION_TYPE[0]:
             if panel_letter == "A":
@@ -349,20 +374,28 @@ class BCPME:
                 tmp[self.name] = {"ip": self.ip, "dev_map": dev_map, "wire_conf": self.wire_conf}
                 json.dump(tmp, file_w)
 
-    def load_from_json(self):
-        with open(BCPME.FILE_CONF, "r") as file_r:
-            s = file_r.read()
-            s = "{}" if s == "" else s
-            j = json.loads(s)
-            if len(j) != 0:
-                if self.name in j:
-                    self.ip = j[self.name]["ip"] if self.ip == "" else self.ip
-                    self.wire_conf = j[self.name]["wire_conf"] if self.wire_conf == "" else self.wire_conf
-                    return j[self.name]["dev_map"]
-            return None
+    def __load_from_json(self):
+        if not os.path.exists(BCPME.FILE_CONF):
+            with open(BCPME.FILE_CONF, "w+") as file:
+                file.write("{}")
+        else:
+            with open(BCPME.FILE_CONF, "r") as file_r:
+                s = file_r.read()
+                s = "{}" if s == "" else s
+                j = json.loads(s)
+                if len(j) != 0:
+                    if self.name in j:
+                        self.ip = j[self.name]["ip"] if self.ip == "" else self.ip
+                        self.wire_conf = j[self.name]["wire_conf"] if self.wire_conf == "" else self.wire_conf
+                        return j[self.name]["dev_map"]
+                return None
 
     @staticmethod
     def init_all_devices() -> List[object]:
+        """
+        Initialize all devices already stored in the json file
+        :return: list of BCPME objects from the json file
+        """
         with open(BCPME.FILE_CONF, "r") as file_r:
             s = file_r.read()
             s = "{}" if s == "" else s
