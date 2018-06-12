@@ -7,8 +7,11 @@ This a little guide with all the things to know to communicate correctly with th
 * [Docs](#docs)
 * [Modbus TCP/IP](#modbus-tcp-ip)
     * [Unit Id](#unit-id)
-    * [Read Different Data Types](#different-data-types)
     * [Function Code](#function-code)
+    * [Read Different Data Types](#different-data-types)
+        * [Short](#integer-16-bit-(short-signed))
+        * [Long](#integer-32-bit-(long-signed))
+        * [Float](#float-32-bit-(float))
 * [About the Code](#about-the-code)
 * [Authors](#authors)
 
@@ -76,31 +79,23 @@ The numbers of the registers in the documentations of the bcpme are augmented by
 to access the register described as number 6 in the docs, we have to use number 5
 
 ### Different Data Types
-
 The first page of [the Register List Document](https://www.schneider-electric.com/resources/sites/SCHNEIDER_ELECTRIC/content/live/FAQS/212000/FA212184/en_US/BCPMSC_Register_List.pdf#page=1)
 shows how to read all the different data types
-
 #### Integer 16 bit (Short signed)
-
 There are a **value register** and a **scale register** and to obtain the final value:
 ```python
 result = value_16 * pow(10, scale)
 ```
-
-### Integer 32 bit (Long signed)
-
+#### Integer 32 bit (Long signed)
 There are **two near value register** and a **scale register** to obtain the final value:
 ```python
 result = value_32 * pow(10, scale)
 ```
-
 #### Float 32 bit (float)
-
 There are **two near value register** to obtain the final value:
 ```python
 result = value
 ```
-
 ### Multi Phase
 
 In order to access the registers that contains data about multi phase measures you have to enable "user defined status register" number `62017` with `1` 
