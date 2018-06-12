@@ -99,7 +99,7 @@ class BCPME:
     def request_edit_single(self, reg_n, unit_id, value):
         length = 6
         function_code = 6
-        request = struct.pack(">3H 2B 1H 1h", ModBus.DEFAULT_TRANSACTION_ID, ModBus.DEFAULT_PROTOCOL_ID, length,
+        request = struct.pack(">3H 2B 1H 1h", BCPME.DEFAULT_TRANSACTION_ID, BCPME.DEFAULT_PROTOCOL_ID, length,
                               unit_id, function_code,
                               int(reg_n) - 1, int(value))
         self.sock.send(request)
@@ -372,83 +372,5 @@ class BCPME:
                 objs.append(BCPME(ip=val["ip"], name=key, wire_conf=val["wire_conf"]))
             return objs
 
-    @staticmethod
-    def new_bcpm_device():
-        new_dev = {}
-        bcpm_name = input("Bcpm name (unique): ")
-        ip = input("IP address:")
-        print("Insert: ")
-        for key in BCPME.WIRE_CONFIGURATION_TYPE:
-            print("\t%s" % key)
-        wire_conf = ""
-        while wire_conf not in BCPME.WIRE_CONFIGURATION_TYPE:
-            wire_conf = input("Choose: ")
-        dev_map = {'1': {'A': {}, 'B': {}}, '2': {'A': {}, 'B': {}}}
-        if wire_conf == BCPME.WIRE_CONFIGURATION_TYPE[0]:
-            # top feed
-            odd = [x for x in range(1, 43, 2)]
-            even = [x for x in range(2, 43, 2)]
-            for n in range(21):
-                dev_map["1"]["A"][n + 1] = {"virtual": odd[n]}
-                dev_map["2"]["A"][n + 1] = {"virtual": odd[n]}
-                dev_map["1"]["B"][n + 1] = {"virtual": even[n]}
-                dev_map["2"]["B"][n + 1] = {"virtual": even[n]}
-        elif wire_conf == BCPME.WIRE_CONFIGURATION_TYPE[1]:
-            # bottom feed
-            odd = [x for x in range(1, 43, 2)]
-            even = [x for x in range(2, 43, 2)]
-            for n in range(21):
-                dev_map["1"]["A"][n + 1] = {"virtual": even[n]}
-                dev_map["2"]["A"][n + 1] = {"virtual": even[n]}
-                dev_map["1"]["B"][n + 1] = {"virtual": odd[n]}
-                dev_map["2"]["B"][n + 1] = {"virtual": odd[n]}
-
-        elif wire_conf == BCPME.WIRE_CONFIGURATION_TYPE[2]:
-            # sequential
-            seq_1 = [x for x in range(21, 0, -1)]
-            seq_2 = [x for x in range(22, 43)]
-            for n in range(21):
-                dev_map["1"]["A"][n + 1] = {"virtual": seq_1[n]}
-                dev_map["2"]["A"][n + 1] = {"virtual": seq_1[n]}
-                dev_map["1"]["B"][n + 1] = {"virtual": seq_2[n]}
-                dev_map["2"]["B"][n + 1] = {"virtual": seq_2[n]}
-        elif wire_conf == BCPME.WIRE_CONFIGURATION_TYPE[3]:
-            # odd/even
-            odd = [x for x in range(1, 43, 2)]
-            even = [x for x in range(2, 43, 2)]
-            for n in range(21):
-                dev_map["1"]["A"][n + 1] = {"virtual": odd[n]}
-                dev_map["2"]["A"][n + 1] = {"virtual": odd[n]}
-                dev_map["1"]["B"][n + 1] = {"virtual": even[n]}
-                dev_map["2"]["B"][n + 1] = {"virtual": even[n]}
-        while True:
-            name = input("Name (or q to quit): ").capitalize()
-            if name == "Q":
-                break
-            panel_number = input("Panel Number: ")
-            panel_letter = input("Panel Letter: ").capitalize()
-            physical_number = int(input("Physical number inside the Panel: "))
-            dev_map[panel_number][panel_letter][physical_number]["name"] = name
-        new_dev["name"] = bcpm_name
-        new_dev["ip"] = ip
-        new_dev["wire_conf"] = wire_conf
-        new_dev["dev_map"] = dev_map
-
-        if not os.path.exists(BCPME.FILE_CONF):
-            with open(BCPME.FILE_CONF, "w+") as file:
-                file.write("[]")
-        with open(BCPME.FILE_CONF, "r") as file_r:
-            s = file_r.read()
-            if s == "":
-                s = "[]"
-            with open(BCPME.FILE_CONF, "w") as file_w:
-                tmp = json.loads(s)
-                tmp.append(new_dev)
-                json.dump(tmp, file_w)
-
     def __str__(self) -> str:
         return "Name: %s,  IP: %s,  Wire Configuration: %s" % (self.name, self.ip, self.wire_conf)
-
-
-if __name__ == "__main__":
-    actual_configuration()

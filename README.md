@@ -12,8 +12,8 @@ This a little guide with all the things to know to communicate correctly with th
 
 #### Docs:
 
-* [User Guide](./doc/BCPME_user%20guide.pdf) - User Guide for the installation of BCPME
-* [Register List](./doc/BCPMSC_Register_List.pdf) - Register List
+* [User Guide](https://download.schneider-electric.com/files?p_enDocType=User+guide&p_File_Name=BCPME_user+guide.pdf&p_Doc_Ref=Z206856) - User Guide for the installation of BCPME
+* [Register List](https://www.schneider-electric.com/resources/sites/SCHNEIDER_ELECTRIC/content/live/FAQS/212000/FA212184/en_US/BCPMSC_Register_List.pdf) - Register List
 * [Simply Modbus](http://www.simplymodbus.ca/TCP.htm) - Simple guide with examples to learn about the modbus TCP/IP protocol
 * [Modbus Wikipedia](https://en.wikipedia.org/wiki/Modbus) - Wikipedia page about modbus and all different types (useful for function code)
 
@@ -44,7 +44,7 @@ but seen from the software perspective **Panel 1A** and  **Panel 1B** ( the same
 * to access Panel 1 (A and B) we use `1` for the "unit id" byte in the modbus request
 * to access Panel 2 (A and B) we use `2` for the "unit id" byte in the modbus request
 
-but the number that are written on the panels and the number of registers doesn't always match this is because as you can se at [Page 15 of The User Guide](./doc/BCPME_user%20guide.pdf#page=15)
+but the number that are written on the panels and the number of registers doesn't always match this is because as you can se at [Page 15 of The User Guide](https://download.schneider-electric.com/files?p_enDocType=User+guide&p_File_Name=BCPME_user+guide.pdf&p_Doc_Ref=Z206856#page=15)
 there are 4 types of configuration.
 
 the following table match the physical number with the "virtual" one:
