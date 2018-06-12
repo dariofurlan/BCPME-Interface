@@ -6,14 +6,16 @@ This a little guide with all the things to know to communicate correctly with th
 
 * [Docs](#docs)
 * [Modbus TCP/IP](#modbus-tcp-ip)
-* [Unit Id](#unit-id)
-* [Function Code](#function-code)
+    * [Unit Id](#unit-id)
+    * [Read Different Data Types](#different-data-types)
+    * [Function Code](#function-code)
+* [About the Code](#about-the-code)
 * [Authors](#authors)
 
 #### Docs:
 
 * [User Guide](https://download.schneider-electric.com/files?p_enDocType=User+guide&p_File_Name=BCPME_user+guide.pdf&p_Doc_Ref=Z206856) - User Guide for the installation of BCPME
-* [Register List](https://www.schneider-electric.com/resources/sites/SCHNEIDER_ELECTRIC/content/live/FAQS/212000/FA212184/en_US/BCPMSC_Register_List.pdf) - Register List
+* [Register List](https://www.schneider-electric.com/resources/sites/SCHNEIDER_ELECTRIC/content/live/FAQS/212000/FA212184/en_US/BCPMSC_Register_List.pdf) - Register List and How to Read Different Data Types
 * [Simply Modbus](http://www.simplymodbus.ca/TCP.htm) - Simple guide with examples to learn about the modbus TCP/IP protocol
 * [Modbus Wikipedia](https://en.wikipedia.org/wiki/Modbus) - Wikipedia page about modbus and all different types (useful for function code)
 
@@ -72,6 +74,32 @@ There are around 20 different type of operations supported, we are just intreste
 > little note:
 The numbers of the registers in the documentations of the bcpme are augmented by 1 it means that for ex.
 to access the register described as number 6 in the docs, we have to use number 5
+
+### Different Data Types
+
+The first page of [the Register List Document](https://www.schneider-electric.com/resources/sites/SCHNEIDER_ELECTRIC/content/live/FAQS/212000/FA212184/en_US/BCPMSC_Register_List.pdf#page=1)
+shows how to read all the different data types
+
+#### Integer 16 bit (Short signed)
+
+There are a **value register** and a **scale register** and to obtain the final value:
+```python
+result = value_16 * pow(10, scale)
+```
+
+### Integer 32 bit (Long signed)
+
+There are **two near value register** and a **scale register** to obtain the final value:
+```python
+result = value_32 * pow(10, scale)
+```
+
+#### Float 32 bit (float)
+
+There are **two near value register** to obtain the final value:
+```python
+result = value
+```
 
 ### Multi Phase
 
