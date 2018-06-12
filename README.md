@@ -112,6 +112,8 @@ You can add new device in two ways:
 each time a device is added to the BCPME class it saves the map of the devices in json using the physical hierarchy so that it's easy to add devices also editing the json file, but the map of devices in the class uses the virtual hierarchy for convenience.
 When Initializing a new BCPME if there's an already saved device with the same name it loads its configuration so when it's initialized once you just need to do ``BCPME("name")``
 
+There's a file with all the useful registers with the corresponding scale values called "bcpme_register_map.json" that file should not be edited unless there's the need
+
 ## Authors
 
 * **Dario Furlan** - *Initial work* - [https://github.com/iofurlan](https://github.com/iofurlan)

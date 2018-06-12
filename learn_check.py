@@ -5,7 +5,7 @@ import sys
 import time
 from threading import Thread
 
-from util import BCPME, Basis
+from util import BCPME, Terminal
 
 values = {}
 averages = {}
@@ -19,6 +19,9 @@ def learner():
         config = json.load(file)
     phase = config["registers"]["1"]
     reg = phase["current"]
+    if len(bcpmes) == 0:
+        Terminal.log_danger("No BCPME device configured")
+        exit(0)
     for bcpme in bcpmes:
         values[bcpme.name] = {1: {}, 2: {}}
         averages[bcpme.name] = {1: {}, 2: {}}
@@ -51,25 +54,27 @@ def checker():
     DANG_THRESHOLD = .15
     fmt = "%11s  mean:%2.2f  %2.2f  >  %2.2f  >  %2.2f"
     while True:
-        os.system('cls||clear')
-        print("number: %s" % i)
-        for bcpme in averages:
-            for unit_id in averages[bcpme]:
-                for virtual in averages[bcpme][unit_id]:
-                    avg = averages[bcpme][unit_id][virtual]
-                    d = values[bcpme][unit_id][virtual]
-                    value = d["values"][len(d["values"]) - 1]
-                    warning_zone = avg * WARN_THRESHOLD
-                    danger_zone = avg * DANG_THRESHOLD
-                    if value < avg - danger_zone or value > avg + danger_zone:
-                        Basis.log_danger(fmt % (d["name"], avg, avg - danger_zone, value, avg + danger_zone))
-                    elif value < avg - warning_zone or value > avg + warning_zone:
-                        Basis.log_warning(fmt % (d["name"], avg, avg - warning_zone, value, avg + warning_zone))
-                    else:
-                        Basis.log_nominal(fmt % (d["name"], avg, avg - warning_zone, value, avg + warning_zone))
-        time.sleep(2)
-        sys.stdout.write(Basis.RESET)
-        print("", end="\r")
+        if averages != {}:
+            os.system('cls||clear')
+            print("number: %s" % i)
+            for bcpme in averages:
+                for unit_id in averages[bcpme]:
+                    for virtual in averages[bcpme][unit_id]:
+                        avg = averages[bcpme][unit_id][virtual]
+                        d = values[bcpme][unit_id][virtual]
+                        value = d["values"][len(d["values"]) - 1]
+                        warning_zone = avg * WARN_THRESHOLD
+                        danger_zone = avg * DANG_THRESHOLD
+                        if value < avg - danger_zone or value > avg + danger_zone:
+                            Terminal.log_danger(fmt % (d["name"], avg, avg - danger_zone, value, avg + danger_zone))
+                        elif value < avg - warning_zone or value > avg + warning_zone:
+                            Terminal.log_warning(fmt % (d["name"], avg, avg - warning_zone, value, avg + warning_zone))
+                        else:
+                            Terminal.log_nominal(fmt % (d["name"], avg, avg - warning_zone, value, avg + warning_zone))
+
+            sys.stdout.write(Terminal.RESET)
+            print("", end="\r")
+        time.sleep(1)
 
 
 if __name__ == "__main__":

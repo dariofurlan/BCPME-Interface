@@ -18,7 +18,7 @@ def print_header(data):
     print("Byte Count : %s" % data[5])
 
 
-class Basis(object):
+class Terminal(object):
     WARNING = "\033[30;43m"
     RED = "\033[97;101m"
     NOMINAL = "\033[97;42m"
@@ -34,26 +34,26 @@ class Basis(object):
 
     @staticmethod
     def log_nominal(message):
-        sys.stdout.write(Basis.NOMINAL)
-        Basis.log(message)
-        sys.stdout.write(Basis.RESET)
+        sys.stdout.write(Terminal.NOMINAL)
+        Terminal.log(message)
+        sys.stdout.write(Terminal.RESET)
 
     @staticmethod
     def log_warning(message):
-        sys.stdout.write(Basis.WARNING)
-        Basis.log(message)
-        sys.stdout.write(Basis.RESET)
+        sys.stdout.write(Terminal.WARNING)
+        Terminal.log(message)
+        sys.stdout.write(Terminal.RESET)
 
     @staticmethod
     def log_danger(message):
-        sys.stdout.write(Basis.RED)
-        Basis.log(message)
-        sys.stdout.write(Basis.RESET)
+        sys.stdout.write(Terminal.RED)
+        Terminal.log(message)
+        sys.stdout.write(Terminal.RESET)
 
     @staticmethod
     def log(message):
-        fmts = "%-" + str(Basis.get_term_columns()) + "s"
-        output = "%s %s" % (Basis.get_log_time(), message)
+        fmts = "%-" + str(Terminal.get_term_columns()) + "s"
+        output = "%s %s" % (Terminal.get_log_time(), message)
         print(fmts % output)
 
 
@@ -88,13 +88,12 @@ class BCPME:
                             to_add["phase"] = 0
                         # print("imported from json: ", to_add["name"])
                         self.devs_in_use[int(panel_n)][el["virtual"]] = to_add
-
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect((self.ip, self.port))
         for n in range(4):
             if self.wire_conf == BCPME.WIRE_CONFIGURATION_TYPE[n]:
                 self.change_configuration(n)
                 break
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((self.ip, self.port))
 
     def __request_read(self, start_register, num_registers, unit_id):
         length = 2 + 4
@@ -396,14 +395,19 @@ class BCPME:
         Initialize all devices already stored in the json file
         :return: list of BCPME objects from the json file
         """
-        with open(BCPME.FILE_CONF, "r") as file_r:
-            s = file_r.read()
-            s = "{}" if s == "" else s
-            j = json.loads(s)
-            objs = []
-            for key, val in j.items():
-                objs.append(BCPME(ip=val["ip"], name=key, wire_conf=val["wire_conf"]))
-            return objs
+        if not os.path.exists(BCPME.FILE_CONF):
+            with open(BCPME.FILE_CONF, "w+") as file:
+                file.write("{}")
+            return []
+        else:
+            with open(BCPME.FILE_CONF, "r") as file_r:
+                s = file_r.read()
+                s = "{}" if s == "" else s
+                j = json.loads(s)
+                objs = []
+                for key, val in j.items():
+                    objs.append(BCPME(ip=val["ip"], name=key, wire_conf=val["wire_conf"]))
+                return objs
 
     def __str__(self) -> str:
         return "Name: %s,  IP: %s,  Wire Configuration: %s" % (self.name, self.ip, self.wire_conf)
