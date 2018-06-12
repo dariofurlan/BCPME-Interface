@@ -4,8 +4,8 @@ This a little guide with all the things to know to communicate correctly with th
 
 ### Table of Contents
 
-* [Docs](#docs:)
-* [Modbus TCP/IP](#modbus-tcp/ip)
+* [Docs](#docs)
+* [Modbus TCP/IP](#modbus-tcp-ip)
 * [Unit Id](#unit-id)
 * [Function Code](#function-code)
 * [Authors](#authors)
@@ -17,7 +17,7 @@ This a little guide with all the things to know to communicate correctly with th
 * [Simply Modbus](http://www.simplymodbus.ca/TCP.htm) - Simple guide with examples to learn about the modbus TCP/IP protocol
 * [Modbus Wikipedia](https://en.wikipedia.org/wiki/Modbus) - Wikipedia page about modbus and all different types (useful for function code)
 
-## Modbus TCP/IP
+## Modbus TCP-IP
 
 This device communicate with the Modbus protocol over TCP/IP
 the modbus request, as you can see int the docs, is built in this precise order:
@@ -44,7 +44,7 @@ but seen from the software perspective **Panel 1A** and  **Panel 1B** ( the same
 * to access Panel 1 (A and B) we use `1` for the "unit id" byte in the modbus request
 * to access Panel 2 (A and B) we use `2` for the "unit id" byte in the modbus request
 
-but the number that are written on the panels and the number of registers doesn't always match this is because as you can se at [Page 15 of The User Guide](./doc/BCPME_user%20guide.pdf)
+but the number that are written on the panels and the number of registers doesn't always match this is because as you can se at [Page 15 of The User Guide](./doc/BCPME_user%20guide.pdf#page=15)
 there are 4 types of configuration.
 
 the following table match the physical number with the "virtual" one:
@@ -77,6 +77,17 @@ to access the register described as number 6 in the docs, we have to use number 
 
 In order to access the registers that contains data about multi phase measures you have to enable "user defined status register" number `62017` with `1` 
 and if needed assign to the registers starting from `62116` to `62157` and write the val `0` for phase 1,`1` for phase 2,`2` for phase 3 
+
+## About the Code
+
+The BCPME python class handle all the type of wire configurations so there's no need to care about them. 
+You can add new device in two ways: 
+
+* From the **physical side**: using the panel number, panel letter and the number physically written on it
+* From the **virtual side**: using the unit id and the virtual number
+
+each time a device is added to the BCPME class it saves the map of the devices in json using the physical hierarchy so that it's easy to add devices also editing the json file, but the map of devices in the class uses the virtual hierarchy for convenience.
+When Initializing a new BCPME if there's an already saved device with the same name it loads its configuration so when it's initialized once you just need to do ``BCPME("name")``
 
 ## Authors
 
