@@ -5,7 +5,7 @@ import socket
 import struct
 import sys
 import time
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 
 def print_header(data):
@@ -119,7 +119,7 @@ class BCPME:
         response = self.sock.recv(st.size)
         print(st.unpack(response))
 
-    def request_int_16(self, register_n, unit_id, scale_reg_n=0):
+    def request_single_int_16(self, register_n, unit_id, scale_reg_n=0):
         """
         Read the 16 bit signed register with the relative scale_reg register if given of the unit id
         :param register_n: the number of the register to read
@@ -132,12 +132,12 @@ class BCPME:
         response = self.sock.recv(st.size)
         # print("binary: %s%s" % (format(response[len(response)-2], "08b"), format(response[len(response)-1], "08b")))
         data = st.unpack(response)
-        scale = self.request_int_16(scale_reg_n, unit_id) if (scale_reg_n != 0) else 0
+        scale = self.request_single_int_16(scale_reg_n, unit_id) if (scale_reg_n != 0) else 0
         # print(data[6])
 
         return data[6] * pow(10, scale)
 
-    def request_int_32(self, register_n, unit_id, scale_reg_n=0):
+    def request_single_int_32(self, register_n, unit_id, scale_reg_n=0):
         """
         Read the 32 bit signed register with the relative scale_reg register if given of the unit id
         :param register_n: the number of the register to read
@@ -150,10 +150,10 @@ class BCPME:
 
         response = self.sock.recv(st.size)
         data = st.unpack(response)
-        scale = self.request_int_16(scale_reg_n, unit_id) if (scale_reg_n != 0) else 0
+        scale = self.request_single_int_16(scale_reg_n, unit_id) if (scale_reg_n != 0) else 0
         return data[6] * pow(10, scale)
 
-    def request_float_32(self, register_n, unit_id, scale_reg_n=0):
+    def request_single_float_32(self, register_n, unit_id, scale_reg_n=0):
         """
         Read the 32 bit float value of the unit id
         :param register_n: the number of the register to read of the unit id
@@ -168,13 +168,13 @@ class BCPME:
         # scale = self.request_int_16(scale_reg_n, unit_id) if (scale_reg_n != 0) else 0
         return data[6]
 
-    def big_request(self, register_n, num_registers, scale_reg_n) -> dict():
+    def big_request_16(self, register_n, num_registers, scale_reg_n) -> Dict[int,Dict[int,Dict[str,str]]]:
         """
         Use this to request all measures about this device only for 16 bit measures
         :param register_n: the first value register number
         :param num_registers: the number of registers
         :param scale_reg_n: the first scale register number
-        :return: a dict containing all the values properly scaled
+        :return: a dict containing all the 16 bit values properly scaled
         """
         st = struct.Struct(">3H 3B %sh" % num_registers)
         values = {1: [], 2: []}
@@ -193,6 +193,44 @@ class BCPME:
         scales[1] = resp[6:len(resp)]
 
         self.__request_read(scale_reg_n, num_registers, 2)
+        resp = st.unpack(self.sock.recv(st.size))
+        scales[2] = resp[6:len(resp)]
+
+        result = {1: {}, 2: {}}
+        for x in range(1, num_registers + 1):
+            result[1][x] = {}
+            result[2][x] = {}
+
+        for unit_id in range(1, 3):
+            for i in range(1, num_registers + 1):
+                result[unit_id][i] = values[unit_id][i - 1] * pow(10, scales[unit_id][i - 1])
+        return result
+
+    def big_request_32(self, register_n, num_registers, scale_reg_n):
+        """
+        Use this to request all measures about this device only for 32 bit measures
+        :param register_n: the first value register number
+        :param num_registers: the number of registers
+        :param scale_reg_n: the first scale register number
+        :return: a dict containing all the 32 bit values properly scaled
+        """
+        st = struct.Struct(">3H 3B %sl" % num_registers)
+        values = {1: [], 2: []}
+        scales = {1: [], 2: []}
+
+        self.__request_read(register_n, num_registers*2, 1)
+        resp = st.unpack(self.sock.recv(st.size))
+        values[1] = resp[6:len(resp)]
+
+        self.__request_read(register_n, num_registers*2, 2)
+        resp = st.unpack(self.sock.recv(st.size))
+        values[2] = resp[6:len(resp)]
+
+        self.__request_read(scale_reg_n, num_registers*2, 1)
+        resp = st.unpack(self.sock.recv(st.size))
+        scales[1] = resp[6:len(resp)]
+
+        self.__request_read(scale_reg_n, num_registers*2, 2)
         resp = st.unpack(self.sock.recv(st.size))
         scales[2] = resp[6:len(resp)]
 
@@ -240,7 +278,7 @@ class BCPME:
         self.devs_in_use[unit_id][virtual] = to_add
         self.__save_dev_state()
 
-    def new_dev_from_physical(self, panel_n:int, panel_letter:str, physical:int, name:str, phase:int=0):
+    def new_dev_from_physical(self, panel_n: int, panel_letter: str, physical: int, name: str, phase: int = 0):
         """
         Add a new device using references from the physical side
         :param panel_n: the panel number
@@ -411,3 +449,15 @@ class BCPME:
 
     def __str__(self) -> str:
         return "Name: %s,  IP: %s,  Wire Configuration: %s" % (self.name, self.ip, self.wire_conf)
+
+
+if __name__ == "__main__":
+    with open(BCPME.FILE_REGISTER_MAP, "r") as file:
+        config = json.load(file)
+    phase = config["registers"]["1"]
+    reg = phase["kwh"]
+    b = BCPME("B")
+    res = b.big_request_32(reg["values"], phase["num_registers"], reg["scale"])
+    for panel_n in res:
+        for v in range(1, len(res[panel_n])+1):
+            print("%s-%s   val = %s" % (panel_n, v, res[panel_n][v]))

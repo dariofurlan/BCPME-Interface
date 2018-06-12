@@ -29,7 +29,7 @@ def learner():
         global i
         i += 1
         for bcpme in bcpmes:
-            res = bcpme.big_request(reg["values"], phase["num_registers"], reg["scale"])
+            res = bcpme.big_request_16(reg["values"], phase["num_registers"], reg["scale"])
             for n in res:
                 for meter in range(1, phase["num_registers"] + 1):
                     val = res[n][meter]
@@ -81,5 +81,9 @@ if __name__ == "__main__":
     i = 0
     Thread(target=learner, daemon=True).start()
     Thread(target=checker, daemon=True).start()
-    while True:
-        pass
+    try:
+        while True:
+            pass
+    except KeyboardInterrupt:
+        print("Closed By Keyboard")
+        exit()

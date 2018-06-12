@@ -375,16 +375,5 @@
           "size": 16
         }
       }
-  },
-  "phases": {
-    "1": {
-      "num_registers": 42
-    },
-    "2": {
-      "num_registers": 21
-    },
-    "3": {
-      "num_registers": 14
-    }
   }
 }
