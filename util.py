@@ -33,27 +33,30 @@ class Terminal(object):
         return shutil.get_terminal_size().columns
 
     @staticmethod
-    def log_nominal(message):
+    def log_nominal(message, **kwargs):
         sys.stdout.write(Terminal.NOMINAL)
-        Terminal.log(message)
+        Terminal.log(message, **kwargs)
         sys.stdout.write(Terminal.RESET)
 
     @staticmethod
-    def log_warning(message):
+    def log_warning(message, **kwargs):
         sys.stdout.write(Terminal.WARNING)
-        Terminal.log(message)
+        Terminal.log(message, **kwargs)
         sys.stdout.write(Terminal.RESET)
 
     @staticmethod
-    def log_danger(message):
+    def log_danger(message, **kwargs):
         sys.stdout.write(Terminal.RED)
-        Terminal.log(message)
+        Terminal.log(message, **kwargs)
         sys.stdout.write(Terminal.RESET)
 
     @staticmethod
-    def log(message):
+    def log(message, **kwargs):
         fmts = "%-" + str(Terminal.get_term_columns()) + "s"
-        output = "%s %s" % (Terminal.get_log_time(), message)
+        if kwargs.get("date", False):
+            output = "%s %s" % (Terminal.get_log_time(), message)
+        else:
+            output = "%s" % message
         print(fmts % output)
 
 

@@ -56,3 +56,17 @@ docs/_build/
 
 # PyBuilder
 target/
+
+\.idea/BCPME Interface\.iml
+
+\.idea/dictionaries/dario\.xml
+
+\.idea/misc\.xml
+
+\.idea/modules\.xml
+
+\.idea/vcs\.xml
+
+\.idea/workspace\.xml
+
+bcpme\.json
