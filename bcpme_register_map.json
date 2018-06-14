@@ -1,379 +1,379 @@
 {
   "registers": {
     "1": {
-        "num_registers":42,
-        "kwh": {
-          "values": 1168,
-          "scale": 1084,
-          "unit": "KWH",
-          "size": 32
-        },
-        "kw": {
-          "values": 1252,
-          "scale": 1042,
-          "unit": "KW",
-          "size": 16
-        },
-        "pf": {
-          "values": 1294,
-          "scale": -3,
-          "unit": "",
-          "size": 16
-        },
-        "current": {
-          "values": 1336,
-          "scale": 1000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "present_kw_demand": {
-          "values": 1378,
-          "scale": 1042,
-          "unit": "KW",
-          "size": 16
-        },
-        "max_kw_demand": {
-          "values": 1420,
-          "scale": 1042,
-          "unit": "KW",
-          "size": 16
-        },
-        "present_current_demand": {
-          "values": 1462,
-          "scale": 1000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "max_current_demand": {
-          "values": 1504,
-          "scale": 1000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "max_kw_total": {
-          "values": 1546,
-          "scale": 1042,
-          "unit": "kw",
-          "size": 16
-        },
-        "max current": {
-          "values": 1588,
-          "scale": 1000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "kva": {
-          "values": 1630,
-          "scale": 1042,
-          "unit": "Amp",
-          "size": 16
-        }
+      "num_registers": 42,
+      "kwh": {
+        "values": 1168,
+        "scale": 1084,
+        "unit": "KWH",
+        "size": 32
       },
-    "2": {
-        "num_registers":21,
-        "kwh": {
-          "values": 4084,
-          "scale": 4042,
-          "unit": "KWH",
-          "size": 32
-        },
-        "kw_total": {
-          "values": 4126,
-          "scale": 4021,
-          "unit": "KW",
-          "size": 16
-        },
-        "pf_total": {
-          "values": 4147,
-          "scale": -3,
-          "unit": "",
-          "size": 16
-        },
-        "current_avg": {
-          "values": 4168,
-          "scale": 4000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "kw_phase_1": {
-          "values": 4189,
-          "scale": 4021,
-          "unit": "KW",
-          "size": 16
-        },
-        "kw_phase_2": {
-          "values": 4210,
-          "scale": 4021,
-          "unit": "KW",
-          "size": 16
-        },
-        "pf_phase_1": {
-          "values": 4231,
-          "scale": -3,
-          "unit": "",
-          "size": 16
-        },
-        "pf_phase_2": {
-          "values": 4252,
-          "scale": -3,
-          "unit": "",
-          "size": 16
-        },
-        "current_phase_1": {
-          "values": 4273,
-          "scale": 4000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "current_phase_2": {
-          "values": 4294,
-          "scale": 4000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "present_kw_total_demand": {
-          "values": 4315,
-          "scale": 4021,
-          "unit": "KW",
-          "size": 16
-        },
-        "present_current_demand_phase_1": {
-          "values": 4357,
-          "scale": 4000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "present_current_demand_phase_2": {
-          "values": 4378,
-          "scale": 4000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "max_current_demand_phase_1": {
-          "values": 4399,
-          "scale": 4000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "max_current_demand_phase_2": {
-          "values": 4420,
-          "scale": 4000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "max_current_phase_1": {
-          "values": 4441,
-          "scale": 4000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "max_current_phase_2": {
-          "values": 4462,
-          "scale": 4000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "max_kw_total": {
-          "values": 4483,
-          "scale": 4021,
-          "unit": "kw",
-          "size": 16
-        },
-        "kva_total": {
-          "values": 4504,
-          "scale": 4021,
-          "unit": "Amp",
-          "size": 16
-        },
-        "kva_phase_1": {
-          "values": 4525,
-          "scale": 4021,
-          "unit": "Amp",
-          "size": 16
-        },
-        "kva_phase_2": {
-          "values": 4546,
-          "scale": 4021,
-          "unit": "Amp",
-          "size": 16
-        }
+      "kw": {
+        "values": 1252,
+        "scale": 1042,
+        "unit": "KW",
+        "size": 16
       },
-    "3": {
-        "num_registers":14,
-        "kwh": {
-          "values": 7056,
-          "scale": 7028,
-          "unit": "KWH",
-          "size": 32
-        },
-        "kw_total": {
-          "values": 7084,
-          "scale": 7014,
-          "unit": "KW",
-          "size": 16
-        },
-        "pf_total": {
-          "values": 7098,
-          "scale": -3,
-          "unit": "",
-          "size": 16
-        },
-        "current_avg": {
-          "values": 7112,
-          "scale": 7000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "kw_phase_1": {
-          "values": 7126,
-          "scale": 7014,
-          "unit": "KW",
-          "size": 16
-        },
-        "kw_phase_2": {
-          "values": 7140,
-          "scale": 7014,
-          "unit": "KW",
-          "size": 16
-        },
-        "kw_phase_3": {
-          "values": 7154,
-          "scale": 7014,
-          "unit": "KW",
-          "size": 16
-        },
-        "pf_phase_1": {
-          "values": 7168,
-          "scale": -3,
-          "unit": "",
-          "size": 16
-        },
-        "pf_phase_2": {
-          "values": 7182,
-          "scale": -3,
-          "unit": "",
-          "size": 16
-        },
-        "pf_phase_3": {
-          "values": 7196,
-          "scale": -3,
-          "unit": "",
-          "size": 16
-        },
-        "current_phase_1": {
-          "values": 7210,
-          "scale": 7000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "current_phase_2": {
-          "values": 7224,
-          "scale": 7000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "current_phase_3": {
-          "values": 7238,
-          "scale": 7000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "present_kw_total_demand": {
-          "values": 7252,
-          "scale": 7014,
-          "unit": "KW",
-          "size": 16
-        },
-        "max_kw_total_demand":{
-          "values": 7266,
-          "scale": 7014,
-          "unit": "KW",
-          "size": 16
-        },
-        "present_current_demand_phase_1": {
-          "values": 7280,
-          "scale": 7000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "present_current_demand_phase_2": {
-          "values": 7294,
-          "scale": 7000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "present_current_demand_phase_3": {
-          "values": 7308,
-          "scale": 7000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "max_current_demand_phase_1": {
-          "values": 7322,
-          "scale": 7000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "max_current_demand_phase_2": {
-          "values": 7336,
-          "scale": 7000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "max_current_demand_phase_3": {
-          "values": 7350,
-          "scale": 7000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "max_current_phase_1": {
-          "values": 7364,
-          "scale": 7000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "max_current_phase_2": {
-          "values": 7378,
-          "scale": 7000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "max_current_phase_3": {
-          "values": 7392,
-          "scale": 7000,
-          "unit": "Amp",
-          "size": 16
-        },
-        "max_kw_total": {
-          "values": 7406,
-          "scale": 7014,
-          "unit": "KW",
-          "size": 16
-        },
-        "kva_total": {
-          "values": 7420,
-          "scale": 7014,
-          "unit": "Amp",
-          "size": 16
-        },
-        "kva_phase_1": {
-          "values": 7434,
-          "scale": 7014,
-          "unit": "Amp",
-          "size": 16
-        },
-        "kva_phase_2": {
-          "values": 7448,
-          "scale": 7014,
-          "unit": "Amp",
-          "size": 16
-        },
-        "kva_phase_3": {
-          "values": 7462,
-          "scale": 7014,
-          "unit": "Amp",
-          "size": 16
-        }
+      "pf": {
+        "values": 1294,
+        "scale": -3,
+        "unit": "",
+        "size": 16
+      },
+      "current": {
+        "values": 1336,
+        "scale": 1000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "present_kw_demand": {
+        "values": 1378,
+        "scale": 1042,
+        "unit": "KW",
+        "size": 16
+      },
+      "max_kw_demand": {
+        "values": 1420,
+        "scale": 1042,
+        "unit": "KW",
+        "size": 16
+      },
+      "present_current_demand": {
+        "values": 1462,
+        "scale": 1000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "max_current_demand": {
+        "values": 1504,
+        "scale": 1000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "max_kw_total": {
+        "values": 1546,
+        "scale": 1042,
+        "unit": "kw",
+        "size": 16
+      },
+      "max current": {
+        "values": 1588,
+        "scale": 1000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "kva": {
+        "values": 1630,
+        "scale": 1042,
+        "unit": "Amp",
+        "size": 16
       }
+    },
+    "2": {
+      "num_registers": 21,
+      "kwh": {
+        "values": 4084,
+        "scale": 4042,
+        "unit": "KWH",
+        "size": 32
+      },
+      "kw_total": {
+        "values": 4126,
+        "scale": 4021,
+        "unit": "KW",
+        "size": 16
+      },
+      "pf_total": {
+        "values": 4147,
+        "scale": -3,
+        "unit": "",
+        "size": 16
+      },
+      "current_avg": {
+        "values": 4168,
+        "scale": 4000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "kw_phase_1": {
+        "values": 4189,
+        "scale": 4021,
+        "unit": "KW",
+        "size": 16
+      },
+      "kw_phase_2": {
+        "values": 4210,
+        "scale": 4021,
+        "unit": "KW",
+        "size": 16
+      },
+      "pf_phase_1": {
+        "values": 4231,
+        "scale": -3,
+        "unit": "",
+        "size": 16
+      },
+      "pf_phase_2": {
+        "values": 4252,
+        "scale": -3,
+        "unit": "",
+        "size": 16
+      },
+      "current_phase_1": {
+        "values": 4273,
+        "scale": 4000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "current_phase_2": {
+        "values": 4294,
+        "scale": 4000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "present_kw_total_demand": {
+        "values": 4315,
+        "scale": 4021,
+        "unit": "KW",
+        "size": 16
+      },
+      "present_current_demand_phase_1": {
+        "values": 4357,
+        "scale": 4000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "present_current_demand_phase_2": {
+        "values": 4378,
+        "scale": 4000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "max_current_demand_phase_1": {
+        "values": 4399,
+        "scale": 4000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "max_current_demand_phase_2": {
+        "values": 4420,
+        "scale": 4000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "max_current_phase_1": {
+        "values": 4441,
+        "scale": 4000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "max_current_phase_2": {
+        "values": 4462,
+        "scale": 4000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "max_kw_total": {
+        "values": 4483,
+        "scale": 4021,
+        "unit": "kw",
+        "size": 16
+      },
+      "kva_total": {
+        "values": 4504,
+        "scale": 4021,
+        "unit": "Amp",
+        "size": 16
+      },
+      "kva_phase_1": {
+        "values": 4525,
+        "scale": 4021,
+        "unit": "Amp",
+        "size": 16
+      },
+      "kva_phase_2": {
+        "values": 4546,
+        "scale": 4021,
+        "unit": "Amp",
+        "size": 16
+      }
+    },
+    "3": {
+      "num_registers": 14,
+      "kwh": {
+        "values": 7056,
+        "scale": 7028,
+        "unit": "KWH",
+        "size": 32
+      },
+      "kw_total": {
+        "values": 7084,
+        "scale": 7014,
+        "unit": "KW",
+        "size": 16
+      },
+      "pf_total": {
+        "values": 7098,
+        "scale": -3,
+        "unit": "",
+        "size": 16
+      },
+      "current_avg": {
+        "values": 7112,
+        "scale": 7000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "kw_phase_1": {
+        "values": 7126,
+        "scale": 7014,
+        "unit": "KW",
+        "size": 16
+      },
+      "kw_phase_2": {
+        "values": 7140,
+        "scale": 7014,
+        "unit": "KW",
+        "size": 16
+      },
+      "kw_phase_3": {
+        "values": 7154,
+        "scale": 7014,
+        "unit": "KW",
+        "size": 16
+      },
+      "pf_phase_1": {
+        "values": 7168,
+        "scale": -3,
+        "unit": "",
+        "size": 16
+      },
+      "pf_phase_2": {
+        "values": 7182,
+        "scale": -3,
+        "unit": "",
+        "size": 16
+      },
+      "pf_phase_3": {
+        "values": 7196,
+        "scale": -3,
+        "unit": "",
+        "size": 16
+      },
+      "current_phase_1": {
+        "values": 7210,
+        "scale": 7000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "current_phase_2": {
+        "values": 7224,
+        "scale": 7000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "current_phase_3": {
+        "values": 7238,
+        "scale": 7000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "present_kw_total_demand": {
+        "values": 7252,
+        "scale": 7014,
+        "unit": "KW",
+        "size": 16
+      },
+      "max_kw_total_demand": {
+        "values": 7266,
+        "scale": 7014,
+        "unit": "KW",
+        "size": 16
+      },
+      "present_current_demand_phase_1": {
+        "values": 7280,
+        "scale": 7000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "present_current_demand_phase_2": {
+        "values": 7294,
+        "scale": 7000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "present_current_demand_phase_3": {
+        "values": 7308,
+        "scale": 7000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "max_current_demand_phase_1": {
+        "values": 7322,
+        "scale": 7000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "max_current_demand_phase_2": {
+        "values": 7336,
+        "scale": 7000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "max_current_demand_phase_3": {
+        "values": 7350,
+        "scale": 7000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "max_current_phase_1": {
+        "values": 7364,
+        "scale": 7000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "max_current_phase_2": {
+        "values": 7378,
+        "scale": 7000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "max_current_phase_3": {
+        "values": 7392,
+        "scale": 7000,
+        "unit": "Amp",
+        "size": 16
+      },
+      "max_kw_total": {
+        "values": 7406,
+        "scale": 7014,
+        "unit": "KW",
+        "size": 16
+      },
+      "kva_total": {
+        "values": 7420,
+        "scale": 7014,
+        "unit": "Amp",
+        "size": 16
+      },
+      "kva_phase_1": {
+        "values": 7434,
+        "scale": 7014,
+        "unit": "Amp",
+        "size": 16
+      },
+      "kva_phase_2": {
+        "values": 7448,
+        "scale": 7014,
+        "unit": "Amp",
+        "size": 16
+      },
+      "kva_phase_3": {
+        "values": 7462,
+        "scale": 7014,
+        "unit": "Amp",
+        "size": 16
+      }
+    }
   }
 }

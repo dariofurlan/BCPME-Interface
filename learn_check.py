@@ -3,9 +3,10 @@ import json
 import os
 import sys
 import time
+from datetime import datetime
 from threading import Thread
-
-from util import BCPME, Terminal
+from influxdb import InfluxDBClient
+from bcpme import BCPME, Terminal, init_all_devices
 
 values = {}
 averages = {}
@@ -13,16 +14,69 @@ maxs = {}
 mins = {}
 i = 0
 
+
+def fetcher(reg_list):
+    if len(reg_list) == 0:
+        Terminal.log_danger("No measure to fetcher")
+        return
+    bcpmes = init_all_devices()
+    if len(bcpmes) == 0:
+        Terminal.log_danger("No BCPME device configured")
+        return
+    db_name = "bcpme_measurements"
+    client = InfluxDBClient(
+        host='localhost',  # TODO change with the real address
+        port=8086,  # TODO change with the real port
+        database=db_name
+    )
+    client.create_database(db_name)
+    while True:
+        os.system("clear")
+        for phase in reg_list:
+            num_registers = reg_list[phase]["num_registers"]
+
+            for measure_name in reg_list[phase]:
+                if measure_name == "num_registers":
+                    continue
+                Terminal.log("Fetching: %s" % (measure_name,))
+                reg = reg_list[phase][measure_name]
+                size = reg["size"]
+                for bcpme in bcpmes:
+                    if size == 16:
+                        res = bcpme.big_request_16(reg["values"], num_registers, reg["scale"])
+                    elif size == 32:
+                        res = bcpme.big_request_32(reg["values"], num_registers, reg["scale"])
+                    else:
+                        continue
+                    for unit_id in res:
+                        for virtual in res[unit_id]:
+                            val = res[unit_id][virtual]
+                            if val != 0:
+                                dev_name = bcpme.get_name_from_virtual(unit_id, virtual)
+                                data = [{
+                                    "measurement": measure_name,
+                                    "tags": {
+                                        "dev_name": dev_name["name"],
+                                        "bcpme_name": bcpme.name,
+                                    },
+                                    "time": datetime.utcnow(),
+                                    "fields": {
+                                        "value": val
+                                    }
+                                }]
+                                client.write_points(data)
+
+
 def learner():
     num_past_values = 120
-    bcpmes = BCPME.init_all_devices()
+    bcpmes = init_all_devices()
     with open(BCPME.FILE_REGISTER_MAP, "r") as file:
         config = json.load(file)
     phase = config["registers"]["1"]
     reg = phase["current"]
     if len(bcpmes) == 0:
         Terminal.log_danger("No BCPME device configured")
-        exit(0)
+        exit(1)
     for bcpme in bcpmes:
         values[bcpme.name] = {1: {}, 2: {}}
         averages[bcpme.name] = {1: {}, 2: {}}
@@ -33,29 +87,29 @@ def learner():
         i += 1
         for bcpme in bcpmes:
             res = bcpme.big_request_16(reg["values"], phase["num_registers"], reg["scale"])
-            for n in res:
-                for meter in range(1, phase["num_registers"] + 1):
-                    val = res[n][meter]
+            for unit_id in res:
+                for virtual in range(1, phase["num_registers"] + 1):
+                    val = res[unit_id][virtual]
                     if val != 0:
-                        phys = bcpme.get_name_from_virtual(n, meter)
-                        if meter not in maxs[bcpme.name][n]:
-                            maxs[bcpme.name][n][meter] = val
-                        if meter not in mins[bcpme.name][n]:
-                            mins[bcpme.name][n][meter] = val
-                        if meter in values[bcpme.name][n]:
-                            values[bcpme.name][n][meter]["values"].append(val)
+                        phys = bcpme.get_name_from_virtual(unit_id, virtual)
+                        if virtual not in maxs[bcpme.name][unit_id]:
+                            maxs[bcpme.name][unit_id][virtual] = val
+                        if virtual not in mins[bcpme.name][unit_id]:
+                            mins[bcpme.name][unit_id][virtual] = val
+                        if virtual in values[bcpme.name][unit_id]:
+                            values[bcpme.name][unit_id][virtual]["values"].append(val)
                         else:
-                            values[bcpme.name][n][meter] = phys
-                            values[bcpme.name][n][meter]["values"] = [val]
-                        if val > maxs[bcpme.name][n][meter]:
-                            maxs[bcpme.name][n][meter] = val
-                        elif val < mins[bcpme.name][n][meter]:
-                            mins[bcpme.name][n][meter] = val
-                        tmp_values = values[bcpme.name][n][meter]["values"]
+                            values[bcpme.name][unit_id][virtual] = phys
+                            values[bcpme.name][unit_id][virtual]["values"] = [val]
+                        if val > maxs[bcpme.name][unit_id][virtual]:
+                            maxs[bcpme.name][unit_id][virtual] = val
+                        elif val < mins[bcpme.name][unit_id][virtual]:
+                            mins[bcpme.name][unit_id][virtual] = val
+                        tmp_values = values[bcpme.name][unit_id][virtual]["values"]
                         if len(tmp_values) > num_past_values:
                             tmp_values = tmp_values[len(tmp_values) - num_past_values:len(tmp_values) - 1]
                         avg = sum(tmp_values) / float(len(tmp_values))
-                        averages[bcpme.name][n][meter] = avg
+                        averages[bcpme.name][unit_id][virtual] = avg
 
 
 def checker():
@@ -66,7 +120,9 @@ def checker():
     while True:
         if averages != {}:
             os.system('cls||clear')
-            Terminal.log("Total values: " + str(i))
+            Terminal.log(
+                "Total values: " + str(i) + " warning threshold: " + str(WARN_THRESHOLD) + " danger threshold: " + str(
+                    DANG_THRESHOLD))
             Terminal.log(header)
             for bcpme in averages:
                 for unit_id in averages[bcpme]:
@@ -80,79 +136,33 @@ def checker():
                         danger_zone = avg * DANG_THRESHOLD
                         if value < avg - danger_zone or value > avg + danger_zone:
                             Terminal.log_danger(
-                                fmt % (bcpme, d["name"], ("%2.2f" % value), ("%2.2f" % avg), ("%2.2f" % max), ("%2.2f" % min)))
+                                fmt % (
+                                    bcpme, d["name"], ("%2.2f" % value), ("%2.2f" % avg), ("%2.2f" % max),
+                                    ("%2.2f" % min)))
                         elif value < avg - warning_zone or value > avg + warning_zone:
                             Terminal.log_warning(
-                                fmt % (bcpme, d["name"], ("%2.2f" % value), ("%2.2f" % avg), ("%2.2f" % max), ("%2.2f" % min)))
+                                fmt % (
+                                    bcpme, d["name"], ("%2.2f" % value), ("%2.2f" % avg), ("%2.2f" % max),
+                                    ("%2.2f" % min)))
                         else:
                             Terminal.log_nominal(
-                                fmt % (bcpme, d["name"], ("%2.2f" % value), ("%2.2f" % avg), ("%2.2f" % max), ("%2.2f" % min)))
+                                fmt % (
+                                    bcpme, d["name"], ("%2.2f" % value), ("%2.2f" % avg), ("%2.2f" % max),
+                                    ("%2.2f" % min)))
 
             sys.stdout.write(Terminal.RESET)
             print("", end="\r")
         time.sleep(2)
 
 
-def checker2():
-    def log_checker_line(color1, name1, val1, color2, name2, val2):
-        columns = Terminal.get_term_columns()
-        out1 = "%s: %2.2f" % (name1, val1)
-        out2 = "%s: %2.2f" % (name2, val1)
-        space1_sx = ("%" + str(int(columns / 4) - len(out1) / 2) + "s") % ""
-        space1_dx = ("%" + str(int(columns / 4) - len(out1) / 2) + "s") % ""
-        space2_sx = ("%" + str(int(columns / 4) - len(out2) / 2) + "s") % ""
-        space2_dx = ("%" + str(int(columns / 4) - len(out2) / 2) + "s") % ""
-        return "%s%s%s%s%s%s%s%s%s%s\n" % (
-            space1_sx, color1, out1, Terminal.RESET, space1_dx, space2_sx, color2, out2, Terminal.RESET, space2_dx)
-
-    WARN_THRESHOLD = .1
-    DANG_THRESHOLD = .15
-    while True:
-        if averages != {}:
-            for bcpme in averages:
-                os.system('cls||clear')
-                print("number: %s" % i)
-                bcpme = "A"
-                out = ""
-                for virtual in range(1, 43):
-                    name1 = str(virtual) + " - "
-                    name2 = str(virtual) + " - "
-                    value1 = 0.0
-                    value2 = 0.0
-                    color1 = ""
-                    color2 = ""
-                    if virtual in averages[bcpme][1]:
-                        name1 += values[bcpme][1][virtual]["name"]
-                        value1 = values[bcpme][1][virtual]["values"][len(values[bcpme][1][virtual]["values"]) - 1]
-                        avg = averages[bcpme][1][virtual]
-                        warning_zone = avg * WARN_THRESHOLD
-                        danger_zone = avg * DANG_THRESHOLD
-                        if value1 < avg - danger_zone or value1 > avg + danger_zone:
-                            color1 = Terminal.RED
-                        elif value1 < avg - warning_zone or value1 > avg + warning_zone:
-                            color1 = Terminal.WARNING
-                        else:
-                            color1 = Terminal.NOMINAL
-                    if virtual in averages[bcpme][2]:
-                        name2 += values[bcpme][2][virtual]["name"]
-                        value2 = values[bcpme][2][virtual]["values"][len(values[bcpme][2][virtual]["values"]) - 1]
-                        avg = averages[bcpme][2][virtual]
-                        warning_zone = avg * WARN_THRESHOLD
-                        danger_zone = avg * DANG_THRESHOLD
-                        if value2 < avg - danger_zone or value2 > avg + danger_zone:
-                            color2 = Terminal.RED
-                        elif value2 < avg - warning_zone or value2 > avg + warning_zone:
-                            color2 = Terminal.WARNING
-                        else:
-                            color2 = Terminal.NOMINAL
-                    out += log_checker_line(color1, name1, value1, color2, name2, value2)
-                sys.stdout.write(out)
-                sys.stdout.write(Terminal.RESET)
-                print("", end="\r")
-        time.sleep(2)
-
-
 if __name__ == "__main__":
+    with open(BCPME.FILE_REGISTER_MAP, "r") as file:
+        config = json.load(file)
+    in_reg_list = {
+        1: config["registers"]["1"]
+    }
+    fetcher(in_reg_list)
+    exit()
     i = 0
     Thread(target=learner, daemon=True).start()
     Thread(target=checker, daemon=True).start()

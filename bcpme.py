@@ -168,10 +168,11 @@ class BCPME:
         self.__request_read(register_n, 2, unit_id)
         response = self.sock.recv(st.size)
         data = st.unpack(response)
+        print(response)
         # scale = self.request_int_16(scale_reg_n, unit_id) if (scale_reg_n != 0) else 0
         return data[6]
 
-    def big_request_16(self, register_n, num_registers, scale_reg_n) -> Dict[int,Dict[int,Dict[str,str]]]:
+    def big_request_16(self, register_n, num_registers, scale_reg_n) -> Dict[int, Dict[int, Dict[str, str]]]:
         """
         Use this to request all measures about this device only for 16 bit measures
         :param register_n: the first value register number
@@ -191,13 +192,17 @@ class BCPME:
         resp = st.unpack(self.sock.recv(st.size))
         values[2] = resp[6:len(resp)]
 
-        self.__request_read(scale_reg_n, num_registers, 1)
-        resp = st.unpack(self.sock.recv(st.size))
-        scales[1] = resp[6:len(resp)]
+        if scale_reg_n <= 0:
+            scales[1] = [scale_reg_n for x in range(num_registers)]
+            scales[2] = [scale_reg_n for x in range(num_registers)]
+        else:
+            self.__request_read(scale_reg_n, num_registers, 1)
+            resp = st.unpack(self.sock.recv(st.size))
+            scales[1] = resp[6:len(resp)]
 
-        self.__request_read(scale_reg_n, num_registers, 2)
-        resp = st.unpack(self.sock.recv(st.size))
-        scales[2] = resp[6:len(resp)]
+            self.__request_read(scale_reg_n, num_registers, 2)
+            resp = st.unpack(self.sock.recv(st.size))
+            scales[2] = resp[6:len(resp)]
 
         result = {1: {}, 2: {}}
         for x in range(1, num_registers + 1):
@@ -221,19 +226,19 @@ class BCPME:
         values = {1: [], 2: []}
         scales = {1: [], 2: []}
 
-        self.__request_read(register_n, num_registers*2, 1)
+        self.__request_read(register_n, num_registers * 2, 1)
         resp = st.unpack(self.sock.recv(st.size))
         values[1] = resp[6:len(resp)]
 
-        self.__request_read(register_n, num_registers*2, 2)
+        self.__request_read(register_n, num_registers * 2, 2)
         resp = st.unpack(self.sock.recv(st.size))
         values[2] = resp[6:len(resp)]
 
-        self.__request_read(scale_reg_n, num_registers*2, 1)
+        self.__request_read(scale_reg_n, num_registers * 2, 1)
         resp = st.unpack(self.sock.recv(st.size))
         scales[1] = resp[6:len(resp)]
 
-        self.__request_read(scale_reg_n, num_registers*2, 2)
+        self.__request_read(scale_reg_n, num_registers * 2, 2)
         resp = st.unpack(self.sock.recv(st.size))
         scales[2] = resp[6:len(resp)]
 
@@ -430,37 +435,38 @@ class BCPME:
                         return j[self.name]["dev_map"]
                 return None
 
-    @staticmethod
-    def init_all_devices() -> List[object]:
-        """
-        Initialize all devices already stored in the json file
-        :return: list of BCPME objects from the json file
-        """
-        if not os.path.exists(BCPME.FILE_CONF):
-            with open(BCPME.FILE_CONF, "w+") as file:
-                file.write("{}")
-            return []
-        else:
-            with open(BCPME.FILE_CONF, "r") as file_r:
-                s = file_r.read()
-                s = "{}" if s == "" else s
-                j = json.loads(s)
-                objs = []
-                for key, val in j.items():
-                    objs.append(BCPME(ip=val["ip"], name=key, wire_conf=val["wire_conf"]))
-                return objs
-
     def __str__(self) -> str:
         return "Name: %s,  IP: %s,  Wire Configuration: %s" % (self.name, self.ip, self.wire_conf)
+
+
+def init_all_devices() -> List[BCPME]:
+    """
+    Initialize all devices already stored in the json file
+    :return: list of BCPME objects from the json file
+    """
+    if not os.path.exists(BCPME.FILE_CONF):
+        with open(BCPME.FILE_CONF, "w+") as file:
+            file.write("{}")
+        return []
+    else:
+        with open(BCPME.FILE_CONF, "r") as file_r:
+            s = file_r.read()
+            s = "{}" if s == "" else s
+            j = json.loads(s)
+            objs = []
+            for key, val in j.items():
+                objs.append(BCPME(ip=val["ip"], name=key, wire_conf=val["wire_conf"]))
+            return objs
 
 
 if __name__ == "__main__":
     with open(BCPME.FILE_REGISTER_MAP, "r") as file:
         config = json.load(file)
     phase = config["registers"]["1"]
-    reg = phase["kwh"]
+    reg = phase["current"]
     b = BCPME("B")
-    res = b.big_request_32(reg["values"], phase["num_registers"], reg["scale"])
-    for panel_n in res:
-        for v in range(1, len(res[panel_n])+1):
-            print("%s-%s   val = %s" % (panel_n, v, res[panel_n][v]))
+    res = b.request_single_float_32(2252, 1)
+    for n in range(42):
+        float32 = b.request_single_float_32(2252 + n, 1)
+        int16 = b.request_single_int_16(1336 + n, 1, 1000 + n)
+        print("(%s)  float:%s == int16: %2.2f" % (n + 1, float32, int16))
