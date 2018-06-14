@@ -8,7 +8,6 @@ import time
 from typing import List, Tuple
 import pkg_resources
 
-
 WARNING = "\033[30;43m"
 RED = "\033[97;101m"
 NOMINAL = "\033[97;42m"
@@ -307,6 +306,25 @@ class BCPME:
         virtual = self.physical_to_virtual(panel_letter, physical)
         self.set_phase(panel_n, virtual, phase)
         self.devs_in_use[panel_n][virtual] = to_add
+        self.__save_dev_state()
+
+    def new_devs_from_physical(self, devs):
+        for panel_n in devs:
+            for panel_letter in devs[panel_n]:
+                for physical in devs[panel_n][panel_letter]:
+                    dev = devs[panel_n][panel_letter][physical]
+                    if "phase" not in dev:
+                        dev["phase"] = 0
+                    to_add = {
+                        "physical": physical,
+                        "panel_n": panel_n,
+                        "panel_letter": panel_letter,
+                        "name": dev["name"],
+                        "phase": dev["phase"]
+                    }
+                    virtual = self.physical_to_virtual(panel_letter, physical)
+                    self.set_phase(panel_n, virtual, dev["phase"])
+                    self.devs_in_use[panel_n][virtual] = to_add
         self.__save_dev_state()
 
     def virtual_to_physical(self, virtual) -> Tuple[str, int]:

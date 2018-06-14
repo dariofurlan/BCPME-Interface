@@ -49,6 +49,7 @@ def fetcher(reg_list):
                             "measurement": measure_name,
                             "tags": {
                                 "dev_name": dev_name["name"],
+                                "phase":dev_name["phase"],
                                 "bcpme_name": bcpme.name,
                             },
                             "time": datetime.utcnow(),
