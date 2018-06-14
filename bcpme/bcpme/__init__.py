@@ -6,6 +6,19 @@ import struct
 import sys
 import time
 from typing import List, Tuple
+import pkg_resources
+
+
+WARNING = "\033[30;43m"
+RED = "\033[97;101m"
+NOMINAL = "\033[97;42m"
+RESET = "\033[0;0m"
+FILE_REGISTER_MAP = "bcpme_register_map.json"
+FILE_CONF = "bcpme.json"
+
+
+def get_register_map():
+    return json.load(open(pkg_resources.resource_filename(__name__, FILE_REGISTER_MAP), "r"))
 
 
 def print_header(data):
@@ -16,12 +29,6 @@ def print_header(data):
     print("Unit Id : %s" % data[3])
     print("Function Code : %s" % data[4])
     print("Byte Count : %s" % data[5])
-
-
-WARNING = "\033[30;43m"
-RED = "\033[97;101m"
-NOMINAL = "\033[97;42m"
-RESET = "\033[0;0m"
 
 
 def log(message, **kwargs):
@@ -62,8 +69,6 @@ def get_log_time():
 class BCPME:
     DEFAULT_TRANSACTION_ID = 0
     DEFAULT_PROTOCOL_ID = 0
-    FILE_CONF = "bcpme.json"
-    FILE_REGISTER_MAP = "bcpme_register_map.json"
     WIRE_CONFIGURATION_TYPE = ["top feed", "bottom feed", "sequential", "odd/even"]
 
     def __init__(self, name, **kwargs):
@@ -403,24 +408,24 @@ class BCPME:
             dev_map[str(dev_val["panel_n"])][dev_val["panel_letter"]][dev_val["physical"]]["name"] = dev_val["name"]
         for dev_val in self.devs_in_use[2].values():
             dev_map[str(dev_val["panel_n"])][dev_val["panel_letter"]][dev_val["physical"]]["name"] = dev_val["name"]
-        if not os.path.exists(BCPME.FILE_CONF):
-            with open(BCPME.FILE_CONF, "w+") as file:
+        if not os.path.exists(FILE_CONF):
+            with open(FILE_CONF, "w+") as file:
                 file.write("{}")
-        with open(BCPME.FILE_CONF, "r") as file_r:
+        with open(FILE_CONF, "r") as file_r:
             s = file_r.read()
             if s == "":
                 s = "{}"
-            with open(BCPME.FILE_CONF, "w") as file_w:
+            with open(FILE_CONF, "w") as file_w:
                 tmp = json.loads(s)
                 tmp[self.name] = {"ip": self.ip, "dev_map": dev_map, "wire_conf": self.wire_conf}
                 json.dump(tmp, file_w)
 
     def __load_from_json(self):
-        if not os.path.exists(BCPME.FILE_CONF):
-            with open(BCPME.FILE_CONF, "w+") as file:
+        if not os.path.exists(FILE_CONF):
+            with open(FILE_CONF, "w+") as file:
                 file.write("{}")
         else:
-            with open(BCPME.FILE_CONF, "r") as file_r:
+            with open(FILE_CONF, "r") as file_r:
                 s = file_r.read()
                 s = "{}" if s == "" else s
                 j = json.loads(s)
@@ -440,12 +445,12 @@ def init_all_devices() -> List[BCPME]:
     Initialize all devices already stored in the json file
     :return: list of BCPME objects from the json file
     """
-    if not os.path.exists(BCPME.FILE_CONF):
-        with open(BCPME.FILE_CONF, "w+") as file:
+    if not os.path.exists(FILE_CONF):
+        with open(FILE_CONF, "w+") as file:
             file.write("{}")
         return []
     else:
-        with open(BCPME.FILE_CONF, "r") as file_r:
+        with open(FILE_CONF, "r") as file_r:
             s = file_r.read()
             s = "{}" if s == "" else s
             j = json.loads(s)

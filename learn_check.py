@@ -163,8 +163,7 @@ def checker():
 
 
 if __name__ == "__main__":
-    with open(BCPME.FILE_REGISTER_MAP, "r") as file:
-        config = json.load(file)
+    config = get_register_map()
     in_reg_list = {
         1: config["registers"]["1"]
     }

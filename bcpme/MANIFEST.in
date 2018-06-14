@@ -1,0 +1,4 @@
+include bcpme/bcpme_register_map.json
+include doc
+include doc/bcpme_image.jpeg
+include doc/physical_virtual.svg

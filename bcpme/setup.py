@@ -8,4 +8,5 @@ setup(name='bcpme',
       author_email='dario.furlan.51@gmail.com',
       license='MIT',
       packages=['bcpme'],
+      include_package_data=True,
       zip_safe=False)
