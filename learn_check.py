@@ -1,12 +1,8 @@
 #! /usr/bin/python3.5
-import json
-import os
-import sys
 from threading import *
-import time
 from datetime import datetime
 from influxdb import InfluxDBClient
-from bcpme import BCPME, Terminal, init_all_devices
+from bcpme import *
 
 values = {}
 averages = {}
@@ -17,11 +13,11 @@ i = 0
 
 def fetcher(reg_list):
     if len(reg_list) == 0:
-        Terminal.log_danger("No measure to fetcher")
+        log_danger("No measure to fetcher")
         return
     bcpmes = init_all_devices()
     if len(bcpmes) == 0:
-        Terminal.log_danger("No BCPME device configured")
+        log_danger("No BCPME device configured")
         return
     db_name = "bcpme_measurements"
     client = InfluxDBClient(
@@ -35,7 +31,7 @@ def fetcher(reg_list):
         size = reg["size"]
         for bcpme in bcpmes:
             lock.acquire()
-            Terminal.log("BCPME: %s  Fetching: %s" % (bcpme.name, measure_name), date=True)
+            log("BCPME: %s  Fetching: %s" % (bcpme.name, measure_name), date=True)
             if size == 16:
                 res = bcpme.big_request_16(reg["values"], num_registers, reg["scale"])
             elif size == 32:
@@ -86,7 +82,7 @@ def learner():
     phase = config["registers"]["1"]
     reg = phase["current"]
     if len(bcpmes) == 0:
-        Terminal.log_danger("No BCPME device configured")
+        log_danger("No BCPME device configured")
         exit(1)
     for bcpme in bcpmes:
         values[bcpme.name] = {1: {}, 2: {}}
@@ -131,10 +127,10 @@ def checker():
     while True:
         if averages != {}:
             os.system('cls||clear')
-            Terminal.log(
+            log(
                 "Total values: " + str(i) + " warning threshold: " + str(WARN_THRESHOLD) + " danger threshold: " + str(
                     DANG_THRESHOLD))
-            Terminal.log(header)
+            log(header)
             for bcpme in averages:
                 for unit_id in averages[bcpme]:
                     for virtual in averages[bcpme][unit_id]:
@@ -146,22 +142,22 @@ def checker():
                         warning_zone = avg * WARN_THRESHOLD
                         danger_zone = avg * DANG_THRESHOLD
                         if value < avg - danger_zone or value > avg + danger_zone:
-                            Terminal.log_danger(
+                            log_danger(
                                 fmt % (
                                     bcpme, d["name"], ("%2.2f" % value), ("%2.2f" % avg), ("%2.2f" % max),
                                     ("%2.2f" % min)))
                         elif value < avg - warning_zone or value > avg + warning_zone:
-                            Terminal.log_warning(
+                            log_warning(
                                 fmt % (
                                     bcpme, d["name"], ("%2.2f" % value), ("%2.2f" % avg), ("%2.2f" % max),
                                     ("%2.2f" % min)))
                         else:
-                            Terminal.log_nominal(
+                            log_nominal(
                                 fmt % (
                                     bcpme, d["name"], ("%2.2f" % value), ("%2.2f" % avg), ("%2.2f" % max),
                                     ("%2.2f" % min)))
 
-            sys.stdout.write(Terminal.RESET)
+            sys.stdout.write(RESET)
             print("", end="\r")
         time.sleep(2)
 
@@ -175,5 +171,5 @@ if __name__ == "__main__":
     try:
         fetcher(in_reg_list)
     except KeyboardInterrupt:
-        Terminal.log_danger("Closed By Keyboard, please wait closing threads...")
+        log_danger("Closed By Keyboard, please wait closing threads...")
         exit()

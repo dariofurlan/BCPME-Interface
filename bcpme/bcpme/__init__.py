@@ -5,7 +5,7 @@ import socket
 import struct
 import sys
 import time
-from typing import List, Tuple, Dict
+from typing import List, Tuple
 
 
 def print_header(data):
@@ -155,20 +155,17 @@ class BCPME:
         scale = self.request_single_int_16(scale_reg_n, unit_id) if (scale_reg_n != 0) else 0
         return data[6] * pow(10, scale)
 
-    def request_single_float_32(self, register_n, unit_id, scale_reg_n=0):
+    def request_single_float_32(self, register_n, unit_id):
         """
         Read the 32 bit float value of the unit id
         :param register_n: the number of the register to read of the unit id
         :param unit_id: the unit id
-        :param scale_reg_n: the register used as a scale_reg
         :return: the value requested
         """
         st = struct.Struct(">3H 3B 1f")
         self.__request_read(register_n, 2, unit_id)
         response = self.sock.recv(st.size)
         data = st.unpack(response)
-        print(response)
-        # scale = self.request_int_16(scale_reg_n, unit_id) if (scale_reg_n != 0) else 0
         return data[6]
 
     def big_request_16(self, register_n: int, num_registers: int, scale_reg_n: int) -> dict:
