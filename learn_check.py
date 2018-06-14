@@ -2,9 +2,9 @@
 import json
 import os
 import sys
+from threading import *
 import time
 from datetime import datetime
-from threading import Thread
 from influxdb import InfluxDBClient
 from bcpme import BCPME, Terminal, init_all_devices
 
@@ -30,41 +30,52 @@ def fetcher(reg_list):
         database=db_name
     )
     client.create_database(db_name)
+
+    def operation(measure_name, reg):
+        size = reg["size"]
+        for bcpme in bcpmes:
+            lock.acquire()
+            Terminal.log("BCPME: %s  Fetching: %s" % (bcpme.name, measure_name), date=True)
+            if size == 16:
+                res = bcpme.big_request_16(reg["values"], num_registers, reg["scale"])
+            elif size == 32:
+                res = bcpme.big_request_32(reg["values"], num_registers, reg["scale"])
+            else:
+                lock.release()
+                continue
+            lock.release()
+            for unit_id in res:
+                for virtual in res[unit_id]:
+                    val = res[unit_id][virtual]
+                    if val != 0:
+                        dev_name = bcpme.get_name_from_virtual(unit_id, virtual)
+                        data = [{
+                            "measurement": measure_name,
+                            "tags": {
+                                "dev_name": dev_name["name"],
+                                "bcpme_name": bcpme.name,
+                            },
+                            "time": datetime.utcnow(),
+                            "fields": {
+                                "value": val
+                            }
+                        }]
+                        client.write_points(data)
+
     while True:
         os.system("clear")
         for phase in reg_list:
             num_registers = reg_list[phase]["num_registers"]
-
-            for measure_name in reg_list[phase]:
-                if measure_name == "num_registers":
+            lock = Lock()
+            threads = []
+            for in_measure_name in reg_list[phase]:
+                if in_measure_name == "num_registers":
                     continue
-                Terminal.log("Fetching: %s" % (measure_name,))
-                reg = reg_list[phase][measure_name]
-                size = reg["size"]
-                for bcpme in bcpmes:
-                    if size == 16:
-                        res = bcpme.big_request_16(reg["values"], num_registers, reg["scale"])
-                    elif size == 32:
-                        res = bcpme.big_request_32(reg["values"], num_registers, reg["scale"])
-                    else:
-                        continue
-                    for unit_id in res:
-                        for virtual in res[unit_id]:
-                            val = res[unit_id][virtual]
-                            if val != 0:
-                                dev_name = bcpme.get_name_from_virtual(unit_id, virtual)
-                                data = [{
-                                    "measurement": measure_name,
-                                    "tags": {
-                                        "dev_name": dev_name["name"],
-                                        "bcpme_name": bcpme.name,
-                                    },
-                                    "time": datetime.utcnow(),
-                                    "fields": {
-                                        "value": val
-                                    }
-                                }]
-                                client.write_points(data)
+                th = Thread(target=operation, args=(in_measure_name, reg_list[phase][in_measure_name]))
+                th.start()
+                threads.append(th)
+            for th in threads:
+                th.join()
 
 
 def learner():
@@ -161,14 +172,8 @@ if __name__ == "__main__":
     in_reg_list = {
         1: config["registers"]["1"]
     }
-    fetcher(in_reg_list)
-    exit()
-    i = 0
-    Thread(target=learner, daemon=True).start()
-    Thread(target=checker, daemon=True).start()
     try:
-        while True:
-            pass
+        fetcher(in_reg_list)
     except KeyboardInterrupt:
-        print("Closed By Keyboard")
+        Terminal.log_danger("Closed By Keyboard, please wait closing threads...")
         exit()

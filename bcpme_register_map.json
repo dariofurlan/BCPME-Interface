@@ -56,7 +56,7 @@
         "unit": "kw",
         "size": 16
       },
-      "max current": {
+      "max_current": {
         "values": 1588,
         "scale": 1000,
         "unit": "Amp",
