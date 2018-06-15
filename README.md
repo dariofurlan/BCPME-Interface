@@ -5,6 +5,7 @@ This a little guide with all the things to know to communicate correctly with th
 ### Table of Contents
 
 * [Docs](#docs)
+* [Install](#install-and-configure)
 * [Modbus TCP/IP](#modbus-tcp-ip)
     * [Unit Id](#unit-id)
     * [Function Code](#function-code)
@@ -13,7 +14,6 @@ This a little guide with all the things to know to communicate correctly with th
         * [Long](#integer-32-bit-(long-signed))
         * [Float](#float-32-bit-(float))
 * [About the Code](#about-the-code)
-* [Install](#install-and-configure)
 * [Authors](#authors)
 
 #### Docs:
@@ -22,6 +22,16 @@ This a little guide with all the things to know to communicate correctly with th
 * [Register List](https://www.schneider-electric.com/resources/sites/SCHNEIDER_ELECTRIC/content/live/FAQS/212000/FA212184/en_US/BCPMSC_Register_List.pdf) - Register List and How to Read Different Data Types
 * [Simply Modbus](http://www.simplymodbus.ca/TCP.htm) - Simple guide with examples to learn about the modbus TCP/IP protocol
 * [Modbus Wikipedia](https://en.wikipedia.org/wiki/Modbus) - Wikipedia page about modbus and all different types (useful for function code)
+
+## Install and Configure
+
+There are only few step to install:
+
+<ol>
+<li>cd inside the cloned repo and <code style="display:block">pip3.5 install bcpme/</code></li>
+<li>change the ip address and port of the influxdb server in "learn_check.py" file (look for the "TODO")</li>
+<li>configure the bcpme devices with the connected devices</li>
+</ol>
 
 ## Modbus TCP-IP
 
@@ -113,20 +123,7 @@ You can add new device in two ways:
 each time a device is added to the BCPME class it saves the map of the devices in json using the physical hierarchy so that it's easy to add devices also editing the json file, but the map of devices in the class uses the virtual hierarchy for convenience.
 When Initializing a new BCPME if there's an already saved device with the same name it loads its configuration so when it's initialized once you just need to do ``BCPME("name")``
 
-The file `bcpme_register_map.json` has all the useful registers with the corresponding scale values so there's no need to scroll all the documentation to find the address of you want to read, just use: 
-```python
-with open("bcpme_register_map.json", "r") as file:
-   config = json.load(file)
-```
-## Install and Configure
-
-There are only few step to install:
-
-<ol>
-<li>cd inside the cloned repo and <code style="display:block">pip3.5 install bcpme/</code></li>
-<li>change the ip address and port of the influxdb server in "learn_check.py" file (look for the "TODO")</li>
-<li>configure the bcpme devices with the connected devices</li>
-</ol>
+The file `bcpme_register_map.json` has all the useful registers with the corresponding scale values so there's no need to scroll all the documentation to find the address of you want to read
 
 ## Authors
 
@@ -135,5 +132,5 @@ There are only few step to install:
 ## License
 
 Fell free to contribute to this project.
-This project is licensed under the MIT License - see the [LICENSE.md](./doc/LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
 
