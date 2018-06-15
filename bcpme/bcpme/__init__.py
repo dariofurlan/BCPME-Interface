@@ -254,6 +254,7 @@ class BCPME:
 
     def get_name_from_virtual(self, unit_id, virtual):
         if virtual not in self.devs_in_use[unit_id]:
+            print("added %s-%s" % (unit_id, virtual))
             self.new_dev_from_virtual(unit_id, virtual, "")
         return self.devs_in_use[unit_id][virtual]
 
@@ -268,6 +269,12 @@ class BCPME:
     def set_phase(self, unit_id, virtual, phase):
         start = 62115
         self.request_edit_single(start + virtual, unit_id, phase)
+
+    def reset_max_registers(self):
+        to_write = 29877
+        for i in range(42):
+            self.request_edit_single(1126+i, 1, to_write)
+            self.request_edit_single(1126+i, 2, to_write)
 
     def new_dev_from_virtual(self, unit_id, virtual, name, phase=0):
         """
@@ -424,8 +431,10 @@ class BCPME:
 
         for dev_val in self.devs_in_use[1].values():
             dev_map[str(dev_val["panel_n"])][dev_val["panel_letter"]][dev_val["physical"]]["name"] = dev_val["name"]
+            dev_map[str(dev_val["panel_n"])][dev_val["panel_letter"]][dev_val["physical"]]["phase"] = dev_val["phase"]
         for dev_val in self.devs_in_use[2].values():
             dev_map[str(dev_val["panel_n"])][dev_val["panel_letter"]][dev_val["physical"]]["name"] = dev_val["name"]
+            dev_map[str(dev_val["panel_n"])][dev_val["panel_letter"]][dev_val["physical"]]["phase"] = dev_val["phase"]
         if not os.path.exists(FILE_CONF):
             with open(FILE_CONF, "w+") as file:
                 file.write("{}")

@@ -13,6 +13,7 @@ This a little guide with all the things to know to communicate correctly with th
         * [Long](#integer-32-bit-(long-signed))
         * [Float](#float-32-bit-(float))
 * [About the Code](#about-the-code)
+* [Install](#install-and-configure)
 * [Authors](#authors)
 
 #### Docs:
@@ -117,6 +118,16 @@ The file `bcpme_register_map.json` has all the useful registers with the corresp
 with open("bcpme_register_map.json", "r") as file:
    config = json.load(file)
 ```
+## Install and Configure
+
+There are only few step to install:
+
+<ol>
+<li>cd inside the cloned repo and <code style="display:block">pip3.5 install bcpme/</code></li>
+<li>change the ip address and port of the influxdb server in "learn_check.py" file (look for the "TODO")</li>
+<li>configure the bcpme devices with the connected devices</li>
+</ol>
+
 ## Authors
 
 * **Dario Furlan** - *Initial work* - [https://github.com/iofurlan](https://github.com/iofurlan)

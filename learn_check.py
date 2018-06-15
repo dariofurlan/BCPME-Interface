@@ -45,6 +45,8 @@ def fetcher(reg_list):
                     val = res[unit_id][virtual]
                     if val != 0:
                         dev_name = bcpme.get_name_from_virtual(unit_id, virtual)
+                        if dev_name["name"] == "":
+                            print(dev_name, measure_name, val)
                         data = [{
                             "measurement": measure_name,
                             "tags": {
