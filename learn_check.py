@@ -4,6 +4,7 @@ from datetime import datetime
 from influxdb import InfluxDBClient
 from bcpme import *
 
+results = []
 values = {}
 averages = {}
 maxs = {}
@@ -30,16 +31,13 @@ def fetcher(reg_list):
     def operation(measure_name, reg):
         size = reg["size"]
         for bcpme in bcpmes:
-            lock.acquire()
             log("BCPME: %s  Fetching: %s" % (bcpme.name, measure_name), date=True)
             if size == 16:
                 res = bcpme.big_request_16(reg["values"], num_registers, reg["scale"])
             elif size == 32:
                 res = bcpme.big_request_32(reg["values"], num_registers, reg["scale"])
             else:
-                lock.release()
                 continue
-            lock.release()
             for unit_id in res:
                 for virtual in res[unit_id]:
                     val = res[unit_id][virtual]
@@ -65,14 +63,14 @@ def fetcher(reg_list):
         os.system("clear")
         for phase in reg_list:
             num_registers = reg_list[phase]["num_registers"]
-            lock = Lock()
             threads = []
             for in_measure_name in reg_list[phase]:
                 if in_measure_name == "num_registers":
                     continue
                 th = Thread(target=operation, args=(in_measure_name, reg_list[phase][in_measure_name]))
-                th.start()
                 threads.append(th)
+            for th in threads:
+                th.start()
             for th in threads:
                 th.join()
 

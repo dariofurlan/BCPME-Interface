@@ -5,6 +5,7 @@ import socket
 import struct
 import sys
 import time
+from threading import Lock
 from typing import List, Tuple
 import pkg_resources
 
@@ -76,6 +77,8 @@ class BCPME:
         self.wire_conf = kwargs.get("wire_conf", "")
         self.port = 502
         self.devs_in_use = {1: {}, 2: {}}
+        self.sock_lock = Lock()
+        self.file_lock = Lock()
         dev_map = self.__load_from_json()
         if dev_map is None:
             dev_map = {}
@@ -117,12 +120,14 @@ class BCPME:
         """
         length = 6
         function_code = 6
+        st = struct.Struct(">3H 2B 1H 1h")
         request = struct.pack(">3H 2B 1H 1h", BCPME.DEFAULT_TRANSACTION_ID, BCPME.DEFAULT_PROTOCOL_ID, length,
                               unit_id, function_code,
                               int(reg_n) - 1, int(value))
+        self.sock_lock.acquire()
         self.sock.send(request)
-        st = struct.Struct(">3H 2B 1H 1h")
         response = self.sock.recv(st.size)
+        self.sock_lock.release()
         print(st.unpack(response))
 
     def request_single_int_16(self, register_n, unit_id, scale_reg_n=0):
@@ -134,8 +139,10 @@ class BCPME:
         :return: the value stored
         """
         st = struct.Struct(">3H 3B 1h")
+        self.sock_lock.acquire()
         self.__request_read(register_n, 1, unit_id)
         response = self.sock.recv(st.size)
+        self.sock_lock.release()
         # print("binary: %s%s" % (format(response[len(response)-2], "08b"), format(response[len(response)-1], "08b")))
         data = st.unpack(response)
         scale = self.request_single_int_16(scale_reg_n, unit_id) if (scale_reg_n != 0) else 0
@@ -152,9 +159,10 @@ class BCPME:
         :return: the value requested
         """
         st = struct.Struct(">3H 3B 1l")  # find out if is signed or not signed "l" is signed , "L" unsigned
+        self.sock_lock.acquire()
         self.__request_read(register_n, 2, unit_id)
-
         response = self.sock.recv(st.size)
+        self.sock_lock.release()
         data = st.unpack(response)
         scale = self.request_single_int_16(scale_reg_n, unit_id) if (scale_reg_n != 0) else 0
         return data[6] * pow(10, scale)
@@ -167,8 +175,10 @@ class BCPME:
         :return: the value requested
         """
         st = struct.Struct(">3H 3B 1f")
+        self.sock_lock.acquire()
         self.__request_read(register_n, 2, unit_id)
         response = self.sock.recv(st.size)
+        self.sock_lock.release()
         data = st.unpack(response)
         return data[6]
 
@@ -184,6 +194,7 @@ class BCPME:
         values = {1: [], 2: []}
         scales = {1: [], 2: []}
 
+        self.sock_lock.acquire()
         self.__request_read(register_n, num_registers, 1)
         resp = st.unpack(self.sock.recv(st.size))
         values[1] = resp[6:len(resp)]
@@ -203,6 +214,7 @@ class BCPME:
             self.__request_read(scale_reg_n, num_registers, 2)
             resp = st.unpack(self.sock.recv(st.size))
             scales[2] = resp[6:len(resp)]
+        self.sock_lock.release()
 
         result = {1: {}, 2: {}}
         for x in range(1, num_registers + 1):
@@ -226,6 +238,7 @@ class BCPME:
         values = {1: [], 2: []}
         scales = {1: [], 2: []}
 
+        self.sock_lock.acquire()
         self.__request_read(register_n, num_registers * 2, 1)
         resp = st.unpack(self.sock.recv(st.size))
         values[1] = resp[6:len(resp)]
@@ -241,6 +254,7 @@ class BCPME:
         self.__request_read(scale_reg_n, num_registers * 2, 2)
         resp = st.unpack(self.sock.recv(st.size))
         scales[2] = resp[6:len(resp)]
+        self.sock_lock.release()
 
         result = {1: {}, 2: {}}
         for x in range(1, num_registers + 1):
@@ -435,6 +449,7 @@ class BCPME:
         for dev_val in self.devs_in_use[2].values():
             dev_map[str(dev_val["panel_n"])][dev_val["panel_letter"]][dev_val["physical"]]["name"] = dev_val["name"]
             dev_map[str(dev_val["panel_n"])][dev_val["panel_letter"]][dev_val["physical"]]["phase"] = dev_val["phase"]
+        self.file_lock.acquire()
         if not os.path.exists(FILE_CONF):
             with open(FILE_CONF, "w+") as file:
                 file.write("{}")
@@ -446,6 +461,7 @@ class BCPME:
                 tmp = json.loads(s)
                 tmp[self.name] = {"ip": self.ip, "dev_map": dev_map, "wire_conf": self.wire_conf}
                 json.dump(tmp, file_w)
+        self.file_lock.release()
 
     def __load_from_json(self):
         if not os.path.exists(FILE_CONF):
